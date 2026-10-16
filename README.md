@@ -4,7 +4,11 @@ A portfolio FastAPI service that turns sales CSVs into validated business KPIs a
 
 [Deploy this repository to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Frohangowda2926%2FProject-2)
 
-Local verification: 27 tests passed; real HTTP health/docs and sample analysis requests passed. Sample revenue: 1090.00, with one high-order anomaly. Public deployment remains pending account setup and live verification.
+Live demo: https://ai-data-operations-assistant.onrender.com/  
+API docs: https://ai-data-operations-assistant.onrender.com/docs  
+Health: https://ai-data-operations-assistant.onrender.com/health
+
+Verification: 27 tests passed; the live dashboard, API docs, health endpoint, and sample analysis request all return successfully. Sample revenue is 1090.00 with one high-order review flag.
 
 ## Run locally
 
@@ -53,15 +57,15 @@ CSV data is held in memory for the request and is not stored or sent to third pa
 
 ## Deploy to Render
 
-Deployment status: **not deployed / no verified live URL yet**.
+The current deployment is live at https://ai-data-operations-assistant.onrender.com/ and is configured from `render.yaml`.
 
 1. Push this folder as the root of a dedicated GitHub repository (do not publish the surrounding CV workspace or `sources/`).
 2. Sign into Render and authorize GitHub access to only that repository.
 3. Choose New → Blueprint and select the repository. The included `render.yaml` specifies the free Python web service, health check, build command and start command. Confirm free plan availability in your account before creation. Alternatively create a Web Service with build `pip install -r requirements.txt`, start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health path `/health`, Python 3.12.10.
 4. Optional: set `API_KEY` in Render → Environment for private use. No other secret is required. Keep the request limits at their defaults unless necessary.
-5. Wait for a successful deploy. Copy the actual Render service URL; do not infer it from the service name.
+5. Wait for a successful deploy and copy the actual Render service URL.
 6. Verify GET `/health` returns HTTP 200 with `status: ok`, `/docs` loads, and POST the sample CSV to `/analyze`. Expect the sample results above. Check an invalid CSV returns 422. Only then call the app live.
 
 Official deployment reference: https://render.com/docs/deploy-fastapi
 
-GitHub Actions runs validation tests on pushes and pull requests. This is an API-only MVP; interactive Swagger docs provide the demo interface, so a separate Vercel frontend is unnecessary.
+GitHub Actions runs validation tests on pushes and pull requests. The same Render service provides the SignalDesk dashboard at `/`, interactive Swagger API docs at `/docs`, and the JSON API at `/analyze`; a separate Vercel frontend is unnecessary.
