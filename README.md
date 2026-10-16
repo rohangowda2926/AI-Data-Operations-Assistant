@@ -23,7 +23,11 @@ python -m pytest -q
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open http://127.0.0.1:8000/docs and use POST /analyze → Try it out. Paste CSV into the text/csv body. GET /health returns status and version.
+The public dashboard is the recommended way to use the project: https://ai-data-operations-assistant.onrender.com/
+
+The URL `http://127.0.0.1:8000` is local-only. It works only after you start Uvicorn on your own computer. `/` opens the SignalDesk dashboard; `/docs` is the developer Swagger page for testing the raw API; `/health` is the service check. The Swagger page is expected to show the `/health` and `/analyze` endpoints.
+
+For local API testing, open http://127.0.0.1:8000/docs and use POST /analyze → Try it out. Paste CSV into the text/csv body. GET /health returns status and version.
 
 Open http://127.0.0.1:8000/ for the user-facing SignalDesk dashboard. It accepts drag-and-drop CSV uploads, includes the sample dataset, and renders KPIs, product bars, and the review queue. Revenue is shown without a currency symbol because the CSV contract assumes one consistent currency per upload but does not prescribe which currency.
 
