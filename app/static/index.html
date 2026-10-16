@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SignalDesk · Sales operations</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><span class="brand-mark">S</span><span>SignalDesk</span></a><nav><a href="#how">How it works</a><a href="/docs" target="_blank">API docs ↗</a></nav></header>
+  <main>
+    <section class="hero"><div class="eyebrow">AI DATA OPERATIONS ASSISTANT · LIVE DEMO</div><h1>Turn messy sales exports into a clear next move.</h1><p>Upload a CSV and get trustworthy revenue KPIs, product performance, and explainable review flags in seconds.</p><div class="hero-meta"><span><i class="dot"></i> Stateless analysis</span><span>UTF-8 CSV</span><span>No AI key required</span></div></section>
+    <section class="workspace" aria-label="Sales analysis workspace">
+      <div class="upload-card" id="dropzone"><div class="upload-icon">↥</div><h2>Drop your sales CSV here</h2><p>or choose a file from your computer</p><input id="fileInput" type="file" accept=".csv,text/csv"><button class="primary" id="chooseBtn">Choose CSV file</button><button class="text-button" id="sampleBtn">Try the sample dataset</button><div class="file-status" id="fileStatus">Required columns: order_id, date, product, quantity, unit_price</div></div>
+      <div class="results-card" id="results"><div class="empty-state"><div class="empty-chart">⌁</div><h2>Your analysis will appear here</h2><p>Upload a file to see the business story behind the numbers.</p></div></div>
+    </section>
+    <section class="how" id="how"><div><div class="eyebrow">A SMALL, SAFE PIPELINE</div><h2>How the assistant works</h2><p>The service is deliberately transparent. Every result can be traced back to a row in your upload and a documented rule.</p></div><div class="steps"><article><span>01</span><h3>Validate</h3><p>Checks headers, dates, unique order IDs, quantities, prices, encoding, and size limits. Invalid files are rejected as a whole.</p></article><article><span>02</span><h3>Calculate</h3><p>Uses exact decimal arithmetic for revenue, average order value, units sold, daily sales, and product totals.</p></article><article><span>03</span><h3>Review</h3><p>Flags unusually large orders with a median and MAD rule, plus zero-revenue orders. Flags are prompts for human review.</p></article></div></section>
+    <section class="trust"><div><strong>Built for a portfolio</strong><p>FastAPI · Render · GitHub Actions · 27 automated tests</p></div><a href="https://github.com/rohangowda2926/Project-2" target="_blank">View source on GitHub ↗</a></section>
+  </main>
+  <footer>SignalDesk · Sales operations demo · <a href="/docs">Developer API</a></footer>
+  <script src="/static/app.js"></script>
+</body></html>

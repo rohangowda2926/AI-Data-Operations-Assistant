@@ -12,6 +12,8 @@ from decimal import Decimal, InvalidOperation
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
 
@@ -39,9 +41,12 @@ async def security_headers(request: Request, call_next):
     return response
 
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
 @app.get("/", include_in_schema=False)
 def index():
-    return RedirectResponse("/docs")
+    return FileResponse("app/static/index.html")
 
 
 @app.get("/health")

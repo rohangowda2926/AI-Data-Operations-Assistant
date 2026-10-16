@@ -21,6 +21,8 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 Open http://127.0.0.1:8000/docs and use POST /analyze → Try it out. Paste CSV into the text/csv body. GET /health returns status and version.
 
+Open http://127.0.0.1:8000/ for the user-facing SignalDesk dashboard. It accepts drag-and-drop CSV uploads, includes the sample dataset, and renders KPIs, product bars, and the review queue. Revenue is shown without a currency symbol because the CSV contract assumes one consistent currency per upload but does not prescribe which currency.
+
 ```sh
 curl -X POST http://127.0.0.1:8000/analyze -H "Content-Type: text/csv" --data-binary @sample_data/sales.csv
 ```
