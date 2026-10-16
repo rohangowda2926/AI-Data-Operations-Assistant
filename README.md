@@ -2,7 +2,7 @@
 
 A portfolio FastAPI service that turns sales CSVs into validated business KPIs and explainable review flags. This MVP uses deterministic statistics, not an LLM. No paid API, database or AI key is needed.
 
-[Deploy this repository to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Frohangowda2926%2FProject-2)
+[Deploy this repository to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Frohangowda2926%2FAI-Data-Operations-Assistant)
 
 Live demo: https://ai-data-operations-assistant.onrender.com/  
 API docs: https://ai-data-operations-assistant.onrender.com/docs  
