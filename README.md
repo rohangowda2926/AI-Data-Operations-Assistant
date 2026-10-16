@@ -2,6 +2,10 @@
 
 A portfolio FastAPI service that turns sales CSVs into validated business KPIs and explainable review flags. This MVP uses deterministic statistics, not an LLM. No paid API, database or AI key is needed.
 
+[Deploy this repository to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Frohangowda2926%2FProject-2)
+
+Local verification: 27 tests passed; real HTTP health/docs and sample analysis requests passed. Sample revenue: 1090.00, with one high-order anomaly. Public deployment remains pending account setup and live verification.
+
 ## Run locally
 
 Use Python 3.12. From this folder:
