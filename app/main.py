@@ -28,7 +28,7 @@ MAX_BYTES = positive_setting("MAX_UPLOAD_BYTES", 1048576, 10485760)
 MAX_ROWS = positive_setting("MAX_ROWS", 10000, 100000)
 API_KEY = os.getenv("API_KEY", "")
 REQUIRED = {"order_id", "date", "product", "quantity", "unit_price"}
-app = FastAPI(title="AI Data Operations Assistant", version="1.0.0",
+app = FastAPI(title="AI Data Operations Assistant", version="1.0.0", docs_url="/api-docs",
               description="CSV sales validation, KPIs and explainable anomaly detection. "
               "Rule-based MVP; no LLM or external data services.")
 
@@ -47,6 +47,11 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse("app/static/index.html")
+
+
+@app.get("/docs", include_in_schema=False)
+def friendly_docs():
+    return RedirectResponse("/")
 
 
 @app.get("/health")

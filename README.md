@@ -5,7 +5,7 @@ A portfolio FastAPI service that turns sales CSVs into validated business KPIs a
 [Deploy this repository to Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Frohangowda2926%2FAI-Data-Operations-Assistant)
 
 Live demo: https://ai-data-operations-assistant.onrender.com/  
-API docs: https://ai-data-operations-assistant.onrender.com/docs  
+API docs: https://ai-data-operations-assistant.onrender.com/api-docs  
 Health: https://ai-data-operations-assistant.onrender.com/health
 
 Verification: 27 tests passed; the live dashboard, API docs, health endpoint, and sample analysis request all return successfully. Sample revenue is 1090.00 with one high-order review flag.
@@ -25,9 +25,9 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 The public dashboard is the recommended way to use the project: https://ai-data-operations-assistant.onrender.com/
 
-The URL `http://127.0.0.1:8000` is local-only. It works only after you start Uvicorn on your own computer. `/` opens the SignalDesk dashboard; `/docs` is the developer Swagger page for testing the raw API; `/health` is the service check. The Swagger page is expected to show the `/health` and `/analyze` endpoints.
+The URL `http://127.0.0.1:8000` is local-only. It works only after you start Uvicorn on your own computer. `/` and `/docs` open the SignalDesk dashboard; `/api-docs` is the developer Swagger page for testing the raw API; `/health` is the service check.
 
-For local API testing, open http://127.0.0.1:8000/docs and use POST /analyze → Try it out. Paste CSV into the text/csv body. GET /health returns status and version.
+For local API testing, open http://127.0.0.1:8000/api-docs and use POST /analyze → Try it out. Paste CSV into the text/csv body. GET /health returns status and version.
 
 Open http://127.0.0.1:8000/ for the user-facing SignalDesk dashboard. It accepts drag-and-drop CSV uploads, includes the sample dataset, and renders KPIs, product bars, and the review queue. Revenue is shown without a currency symbol because the CSV contract assumes one consistent currency per upload but does not prescribe which currency.
 
@@ -72,4 +72,4 @@ The current deployment is live at https://ai-data-operations-assistant.onrender.
 
 Official deployment reference: https://render.com/docs/deploy-fastapi
 
-GitHub Actions runs validation tests on pushes and pull requests. The same Render service provides the SignalDesk dashboard at `/`, interactive Swagger API docs at `/docs`, and the JSON API at `/analyze`; a separate Vercel frontend is unnecessary.
+GitHub Actions runs validation tests on pushes and pull requests. The same Render service provides the SignalDesk dashboard at `/` and `/docs`, interactive Swagger API docs at `/api-docs`, and the JSON API at `/analyze`; a separate Vercel frontend is unnecessary.

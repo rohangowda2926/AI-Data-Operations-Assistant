@@ -14,7 +14,8 @@ def post(text):
 
 def test_health_and_docs():
     assert client.get("/health").json()["status"] == "ok"
-    assert client.get("/docs").status_code == 200
+    assert client.get("/docs", follow_redirects=False).status_code == 307
+    assert client.get("/api-docs").status_code == 200
     assert "/analyze" in client.get("/openapi.json").json()["paths"]
 
 
