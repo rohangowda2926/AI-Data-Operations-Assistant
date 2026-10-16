@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-data-operations-assistant
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: MAX_UPLOAD_BYTES
+        value: "1048576"
+      - key: MAX_ROWS
+        value: "10000"

@@ -1,0 +1,7 @@
+order_id,date,product,quantity,unit_price
+ORD-001,2026-10-01,Notebook,2,10.00
+ORD-002,2026-10-01,Pen,5,2.00
+ORD-003,2026-10-02,Notebook,1,10.00
+ORD-004,2026-10-03,Notebook,3,10.00
+ORD-005,2026-10-04,Notebook,2,10.00
+ORD-006,2026-10-05,Notebook,100,10.00
