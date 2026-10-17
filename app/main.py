@@ -24,7 +24,7 @@ def positive_setting(name: str, default: int, maximum: int) -> int:
     return value
 
 
-MAX_BYTES = positive_setting("MAX_UPLOAD_BYTES", 1048576, 10485760)
+MAX_BYTES = positive_setting("MAX_UPLOAD_BYTES", 10485760, 52428800)
 MAX_ROWS = positive_setting("MAX_ROWS", 10000, 100000)
 API_KEY = os.getenv("API_KEY", "")
 REQUIRED = {"order_id", "date", "product", "quantity", "unit_price"}
@@ -79,7 +79,12 @@ def analyze_generic(text: str) -> dict:
 
     def number(value):
         try:
-            parsed = Decimal(value.replace(",", ""))
+            if re.search(r"[A-Za-z]", value):
+                return None
+            cleaned = re.sub(r"[^0-9.+-]", "", value.replace(",", ""))
+            if not cleaned or cleaned in {".", "+", "-"}:
+                return None
+            parsed = Decimal(cleaned)
             return float(parsed) if parsed.is_finite() else None
         except (InvalidOperation, AttributeError):
             return None
