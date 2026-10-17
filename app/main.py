@@ -61,6 +61,66 @@ def health():
     return {"status": "ok", "version": "1.0.0"}
 
 
+def analyze_generic(text: str) -> dict:
+    """Profile an arbitrary CSV without guessing domain-specific meaning."""
+    reader = csv.DictReader(io.StringIO(text, newline=""), strict=True)
+    fields = reader.fieldnames
+    if not fields or len(fields) != len(set(fields)) or any(not f.strip() for f in fields):
+        raise HTTPException(422, "CSV must have unique, nonempty column names")
+    rows = []
+    for count, raw in enumerate(reader, 1):
+        if count > MAX_ROWS:
+            raise HTTPException(413, f"CSV exceeds {MAX_ROWS} data rows")
+        if None in raw or any(v is None for v in raw.values()):
+            raise HTTPException(422, f"Row {count + 1} has the wrong number of columns")
+        rows.append({field: (raw[field] or "").strip() for field in fields})
+    if not rows:
+        raise HTTPException(422, "CSV must contain at least one data row")
+
+    def number(value):
+        try:
+            parsed = Decimal(value.replace(",", ""))
+            return float(parsed) if parsed.is_finite() else None
+        except (InvalidOperation, AttributeError):
+            return None
+
+    def parsed_date(value):
+        for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+            try:
+                return datetime.strptime(value, fmt).date().isoformat()
+            except ValueError:
+                continue
+        return None
+
+    profiles = []
+    for field in fields:
+        values = [row[field] for row in rows]
+        nonempty = [value for value in values if value]
+        numeric = [number(value) for value in nonempty]
+        dates = [parsed_date(value) for value in nonempty]
+        if nonempty and sum(value is not None for value in numeric) / len(nonempty) >= .9:
+            kind = "numeric"
+            nums = [value for value in numeric if value is not None]
+            ordered = sorted(nums)
+            q1, q3 = ordered[len(ordered) // 4], ordered[(len(ordered) * 3) // 4]
+            iqr = q3 - q1
+            outliers = sum(value < q1 - 1.5 * iqr or value > q3 + 1.5 * iqr for value in nums) if iqr else 0
+            detail = {"min": min(nums), "max": max(nums), "mean": round(sum(nums) / len(nums), 4), "median": ordered[len(ordered) // 2], "outlier_count": outliers}
+        elif nonempty and sum(value is not None for value in dates) / len(nonempty) >= .9:
+            kind = "date"
+            normalized = sorted(value for value in dates if value is not None)
+            detail = {"min": normalized[0], "max": normalized[-1]}
+        else:
+            kind = "text"
+            counts = defaultdict(int)
+            for value in nonempty:
+                counts[value] += 1
+            detail = {"unique_count": len(counts), "top_values": [{"value": k, "count": v} for k, v in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:5]]}
+        profiles.append({"column": field, "type": kind, "missing_count": len(values) - len(nonempty), "unique_count": len(set(nonempty)), "details": detail})
+    duplicate_rows = len(rows) - len({tuple(row[field] for field in fields) for row in rows})
+    return {"input_format": "generic_csv", "summary": f"Profiled {len(rows)} rows across {len(fields)} columns without applying a domain-specific model.", "dataset_profile": {"row_count": len(rows), "column_count": len(fields), "duplicate_row_count": duplicate_rows, "columns": profiles}, "method": {"inference": "Numeric when at least 90% of nonempty values parse as finite numbers; date when at least 90% match common date formats; otherwise text.", "limitations": "Inferred types describe the file structure. They do not prove business meaning, causality, or data quality. Uploads are analyzed in memory and not persisted."}}
+
+
 def analyze(data: bytes) -> dict:
     try:
         text = data.decode("utf-8-sig")
@@ -83,7 +143,7 @@ def analyze(data: bytes) -> dict:
             source_format = "walmart_weekly"
             source_map = {"order_id": "Store", "date": "Date", "product": "Store", "quantity": "Store", "unit_price": "Weekly_Sales"}
         if source_map is None:
-            raise HTTPException(422, "Use headers order_id,date,product,quantity,unit_price or the supported sales export headers Order ID,Order Date,Item Type,Units Sold,Unit Price")
+            return analyze_generic(text)
         for count, row in enumerate(reader, 1):
             number = reader.line_num
             if count > MAX_ROWS:

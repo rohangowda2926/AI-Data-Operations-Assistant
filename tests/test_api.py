@@ -49,6 +49,17 @@ def test_walmart_weekly_format():
     assert result["kpis"]["product_count"] == 2
 
 
+def test_generic_csv_profile():
+    csv = "customer,score,joined\nAda,12.5,2026-01-02\nLin,8.0,2026-01-03\nAda,12.5,2026-01-02\n"
+    response = post(csv)
+    assert response.status_code == 200
+    result = response.json()
+    assert result["input_format"] == "generic_csv"
+    assert result["dataset_profile"]["row_count"] == 3
+    assert result["dataset_profile"]["duplicate_row_count"] == 1
+    assert result["dataset_profile"]["columns"][1]["type"] == "numeric"
+
+
 @pytest.mark.parametrize("row", [
     "a,2026-02-30,Pen,1,2", "a,20261001,Pen,1,2", "a,2026-10-01,Pen,-1,2",
     "a,2026-10-01,Pen,1.5,2", "a,2026-10-01,Pen,0,2", "a,2026-10-01,Pen,1,NaN",
