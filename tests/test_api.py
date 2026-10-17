@@ -38,6 +38,17 @@ def test_common_sales_export_format():
     assert response.json()["kpis"]["total_revenue"] == "1158502.59"
 
 
+def test_walmart_weekly_format():
+    csv = "Store,Date,Weekly_Sales,Holiday_Flag,Temperature\n"
+    csv += "1,05-02-2010,1643690.9,0,42.31\n2,12-02-2010,100.00,1,38.51\n"
+    response = post(csv)
+    assert response.status_code == 200
+    result = response.json()
+    assert result["input_format"] == "walmart_weekly"
+    assert result["kpis"]["total_revenue"] == "1643790.90"
+    assert result["kpis"]["product_count"] == 2
+
+
 @pytest.mark.parametrize("row", [
     "a,2026-02-30,Pen,1,2", "a,20261001,Pen,1,2", "a,2026-10-01,Pen,-1,2",
     "a,2026-10-01,Pen,1.5,2", "a,2026-10-01,Pen,0,2", "a,2026-10-01,Pen,1,NaN",

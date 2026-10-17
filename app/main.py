@@ -29,6 +29,7 @@ MAX_ROWS = positive_setting("MAX_ROWS", 10000, 100000)
 API_KEY = os.getenv("API_KEY", "")
 REQUIRED = {"order_id", "date", "product", "quantity", "unit_price"}
 ALTERNATE_REQUIRED = {"Order ID", "Order Date", "Item Type", "Units Sold", "Unit Price"}
+WALMART_REQUIRED = {"Store", "Date", "Weekly_Sales"}
 app = FastAPI(title="AI Data Operations Assistant", version="1.0.0", docs_url="/api-docs",
               description="CSV sales validation, KPIs and explainable anomaly detection. "
               "Rule-based MVP; no LLM or external data services.")
@@ -73,9 +74,14 @@ def analyze(data: bytes) -> dict:
         fields = reader.fieldnames
         if not fields or len(fields) != len(set(fields)):
             raise HTTPException(422, "CSV headers must be unique")
+        source_format = "native"
         source_map = {field: field for field in REQUIRED} if set(fields) == REQUIRED else None
         if source_map is None and ALTERNATE_REQUIRED.issubset(set(fields)):
             source_map = {"order_id": "Order ID", "date": "Order Date", "product": "Item Type", "quantity": "Units Sold", "unit_price": "Unit Price"}
+            source_format = "sales_export"
+        if source_map is None and WALMART_REQUIRED.issubset(set(fields)):
+            source_format = "walmart_weekly"
+            source_map = {"order_id": "Store", "date": "Date", "product": "Store", "quantity": "Store", "unit_price": "Weekly_Sales"}
         if source_map is None:
             raise HTTPException(422, "Use headers order_id,date,product,quantity,unit_price or the supported sales export headers Order ID,Order Date,Item Type,Units Sold,Unit Price")
         for count, row in enumerate(reader, 1):
@@ -85,7 +91,14 @@ def analyze(data: bytes) -> dict:
             try:
                 if None in row or any(v is None for v in row.values()):
                     raise ValueError("Row has the wrong number of columns")
-                row = {canonical: str(row[source]).strip() for canonical, source in source_map.items()}
+                if source_format == "walmart_weekly":
+                    store = str(row["Store"]).strip()
+                    source_date = str(row["Date"]).strip()
+                    row = {"order_id": f"{store}-{source_date}", "date": source_date,
+                           "product": f"Store {store}", "quantity": "1",
+                           "unit_price": str(row["Weekly_Sales"]).strip()}
+                else:
+                    row = {canonical: str(row[source]).strip() for canonical, source in source_map.items()}
                 if any(not v for v in row.values()):
                     raise ValueError("All fields are required")
                 if len(row["order_id"]) > 100 or len(row["product"]) > 200:
@@ -93,7 +106,9 @@ def analyze(data: bytes) -> dict:
                 if row["order_id"] in seen:
                     raise ValueError("Duplicate order_id; use one row per order")
                 try:
-                    if source_map["date"] == "date":
+                    if source_format == "walmart_weekly":
+                        row["date"] = datetime.strptime(row["date"], "%d-%m-%Y").date().isoformat()
+                    elif source_map["date"] == "date":
                         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", row["date"]):
                             raise ValueError
                         row["date"] = date.fromisoformat(row["date"]).isoformat()
@@ -153,9 +168,14 @@ def analyze(data: bytes) -> dict:
         "daily_revenue": [{"date": k, "revenue": money(v)} for k, v in sorted(daily.items())],
         "revenue_by_product": [{"product": k, "revenue": money(v)} for k, v in sorted(products.items(), key=lambda x: (-x[1], x[0]))],
         "anomaly_count": len(anomalies), "anomalies": anomalies,
-        "summary": f"Analyzed {len(rows)} orders across {len(daily)} observed sales days; {len(anomalies)} orders flagged for review.",
+        "summary": (f"Analyzed {len(rows)} weekly store observations across {len(daily)} observed sales days; {len(anomalies)} observations flagged for review."
+                     if source_format == "walmart_weekly" else
+                     f"Analyzed {len(rows)} orders across {len(daily)} observed sales days; {len(anomalies)} orders flagged for review."),
+        "input_format": source_format,
         "method": {"high_revenue": "At least 5 orders; revenue > median + 6 * median absolute deviation. When MAD=0: median + max(1, 2*median).",
-                   "limitations": "One row per order, one currency per upload; no tax, discounts, returns or currency conversion. Flags are review prompts, not proof of errors. Missing calendar dates are not treated as zero sales.",
+                   "limitations": ("Each row is a store-week observation; quantity is set to 1 because this dataset has sales value but no unit count. Store observations are not individual orders. One currency per upload; flags are review prompts, not proof of errors. Missing calendar dates are not treated as zero sales."
+                                  if source_format == "walmart_weekly" else
+                                  "One row per order, one currency per upload; no tax, discounts, returns or currency conversion. Flags are review prompts, not proof of errors. Missing calendar dates are not treated as zero sales."),
                    "money": "Decimal strings; averages rounded to two decimals using half-even rounding."},
     }
 
