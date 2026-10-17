@@ -30,6 +30,14 @@ def test_sample_kpis_and_outlier():
     assert result["anomalies"][0]["order_id"] == "ORD-006"
 
 
+def test_common_sales_export_format():
+    csv = "Region,Item Type,Order Date,Order ID,Units Sold,Unit Price,Total Revenue\n"
+    csv += "Europe,Office Supplies,5/2/2014,341417157,1779,651.21,1158502.59\n"
+    response = post(csv)
+    assert response.status_code == 200
+    assert response.json()["kpis"]["total_revenue"] == "1158502.59"
+
+
 @pytest.mark.parametrize("row", [
     "a,2026-02-30,Pen,1,2", "a,20261001,Pen,1,2", "a,2026-10-01,Pen,-1,2",
     "a,2026-10-01,Pen,1.5,2", "a,2026-10-01,Pen,0,2", "a,2026-10-01,Pen,1,NaN",

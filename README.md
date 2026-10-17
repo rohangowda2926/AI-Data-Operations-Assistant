@@ -39,7 +39,7 @@ In Windows PowerShell use `curl.exe` for this command.
 
 ## CSV contract
 
-Headers must be exactly `order_id,date,product,quantity,unit_price` (any column order). UTF-8/BOM accepted; quoted fields supported. One row per unique order, one currency per file. Dates use YYYY-MM-DD. Quantity is a positive integer up to 1,000,000. Prices are finite, nonnegative, at most 1,000,000,000 and two decimal places. Returns, discounts, taxes and mixed currencies are outside this MVP.
+The native format uses `order_id,date,product,quantity,unit_price` (any column order). The app also accepts common sales exports when they contain `Order ID`, `Order Date`, `Item Type`, `Units Sold`, and `Unit Price`; extra columns such as `Region`, `Country`, `Total Revenue`, and `Total Profit` are ignored, and dates such as `5/28/2010` are converted automatically. UTF-8/BOM accepted; quoted fields supported. One row per unique order, one currency per file. Dates use YYYY-MM-DD in the native format. Quantity is a positive integer up to 1,000,000. Prices are finite, nonnegative, at most 1,000,000,000 and two decimal places. Returns, discounts, taxes and mixed currencies are outside this MVP.
 
 Invalid uploads are rejected as a whole with HTTP 422, with up to 50 row errors. HTTP 413 means byte/row limit exceeded; 415 means wrong content type; 401 means API key missing/incorrect when configured. Defaults: 1 MiB and 10,000 orders. Empty CSVs, duplicate IDs/headers and malformed rows are rejected.
 

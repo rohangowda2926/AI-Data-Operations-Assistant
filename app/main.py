@@ -7,7 +7,7 @@ import os
 import re
 import statistics
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -28,6 +28,7 @@ MAX_BYTES = positive_setting("MAX_UPLOAD_BYTES", 1048576, 10485760)
 MAX_ROWS = positive_setting("MAX_ROWS", 10000, 100000)
 API_KEY = os.getenv("API_KEY", "")
 REQUIRED = {"order_id", "date", "product", "quantity", "unit_price"}
+ALTERNATE_REQUIRED = {"Order ID", "Order Date", "Item Type", "Units Sold", "Unit Price"}
 app = FastAPI(title="AI Data Operations Assistant", version="1.0.0", docs_url="/api-docs",
               description="CSV sales validation, KPIs and explainable anomaly detection. "
               "Rule-based MVP; no LLM or external data services.")
@@ -70,8 +71,13 @@ def analyze(data: bytes) -> dict:
     rows, errors, seen = [], [], set()
     try:
         fields = reader.fieldnames
-        if not fields or len(fields) != len(set(fields)) or set(fields) != REQUIRED:
-            raise HTTPException(422, "Headers must be exactly: order_id,date,product,quantity,unit_price")
+        if not fields or len(fields) != len(set(fields)):
+            raise HTTPException(422, "CSV headers must be unique")
+        source_map = {field: field for field in REQUIRED} if set(fields) == REQUIRED else None
+        if source_map is None and ALTERNATE_REQUIRED.issubset(set(fields)):
+            source_map = {"order_id": "Order ID", "date": "Order Date", "product": "Item Type", "quantity": "Units Sold", "unit_price": "Unit Price"}
+        if source_map is None:
+            raise HTTPException(422, "Use headers order_id,date,product,quantity,unit_price or the supported sales export headers Order ID,Order Date,Item Type,Units Sold,Unit Price")
         for count, row in enumerate(reader, 1):
             number = reader.line_num
             if count > MAX_ROWS:
@@ -79,15 +85,22 @@ def analyze(data: bytes) -> dict:
             try:
                 if None in row or any(v is None for v in row.values()):
                     raise ValueError("Row has the wrong number of columns")
-                row = {k: v.strip() for k, v in row.items()}
+                row = {canonical: str(row[source]).strip() for canonical, source in source_map.items()}
                 if any(not v for v in row.values()):
                     raise ValueError("All fields are required")
                 if len(row["order_id"]) > 100 or len(row["product"]) > 200:
                     raise ValueError("order_id/product exceeds 100/200 characters")
                 if row["order_id"] in seen:
                     raise ValueError("Duplicate order_id; use one row per order")
-                if date.fromisoformat(row["date"]).isoformat() != row["date"]:
-                    raise ValueError("Date must use YYYY-MM-DD")
+                try:
+                    if source_map["date"] == "date":
+                        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", row["date"]):
+                            raise ValueError
+                        row["date"] = date.fromisoformat(row["date"]).isoformat()
+                    else:
+                        row["date"] = datetime.strptime(row["date"], "%m/%d/%Y").date().isoformat()
+                except ValueError:
+                    raise ValueError("Date must use YYYY-MM-DD or M/D/YYYY for supported sales exports") from None
                 if not row["quantity"].isascii() or not row["quantity"].isdigit():
                     raise ValueError("Quantity must be a positive integer")
                 quantity = int(row["quantity"])
