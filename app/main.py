@@ -24,7 +24,7 @@ def positive_setting(name: str, default: int, maximum: int) -> int:
     return value
 
 
-MAX_BYTES = positive_setting("MAX_UPLOAD_BYTES", 10485760, 52428800)
+MAX_BYTES = max(positive_setting("MAX_UPLOAD_BYTES", 10485760, 52428800), 10485760)
 MAX_ROWS = positive_setting("MAX_ROWS", 10000, 100000)
 API_KEY = os.getenv("API_KEY", "")
 REQUIRED = {"order_id", "date", "product", "quantity", "unit_price"}
